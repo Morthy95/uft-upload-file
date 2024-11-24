@@ -18,7 +18,7 @@ jobs:
         echo "CLIENT: $CLIENT"
         echo "SECRET: $SECRET"
         echo "TENANT: $TENANT"
-        curl -X POST https://labmobile.keeggo.com/rest/oauth2/token \
+        curl -k -X POST https://labmobile.keeggo.com/rest/oauth2/token \
           -H "Content-Type: application/json" \
           -d '{
                 "client": "'$CLIENT'",
