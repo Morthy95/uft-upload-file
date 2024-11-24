@@ -6,13 +6,14 @@ on:
 jobs:
   generate-token:
     runs-on: ubuntu-latest
+    environment: <nome-do-seu-ambiente> # Substitua pelo nome do ambiente configurado
 
     steps:
     - name: Generate OAuth Token
       env:
-        CLIENT: ${{ secrets.CLIENT }}
-        SECRET: ${{ secrets.SECRET }}
-        TENANT: ${{ secrets.TENANT }}
+        CLIENT: ${{ vars.CLIENT }}
+        SECRET: ${{ vars.SECRET }}
+        TENANT: ${{ vars.TENANT }}
       run: |
         echo "Generating token with the following details:"
         echo "CLIENT: $CLIENT"
@@ -20,8 +21,4 @@ jobs:
         echo "TENANT: $TENANT"
         curl -k -X POST https://labmobile.keeggo.com/rest/oauth2/token \
           -H "Content-Type: application/json" \
-          -d '{
-                "client": "'$CLIENT'",
-                "secret": "'$SECRET'",
-                "tenant": "'$TENANT'"
-              }'
+          -d "{\"client\":\"$CLIENT\", \"secret\":\"$SECRET\", \"tenant\":\"$TENANT\"}"
