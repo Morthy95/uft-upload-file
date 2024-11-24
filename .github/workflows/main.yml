@@ -33,11 +33,16 @@ jobs:
         TOKEN=$(echo $RESPONSE | jq -r '.access_token')
         echo "Token: $TOKEN"
 
+          # Verifica se o token foi extraído corretamente
+        if [ -z "$TOKEN" ]; then
+          echo "Error: Token not retrieved from the response"
+          exit 1
+        fi
+        echo "Token: $TOKEN"
+
         # Salvar o token como variável de ambiente para o próximo passo
         echo "TOKEN=$TOKEN" >> $GITHUB_ENV
-        
-   
-      
+          
     - name: Print Token
       env:
         TOKEN: ${{ env.TOKEN }}
