@@ -14,9 +14,9 @@ jobs:
 
     - name: Calculate Start and End Times
       run: |
-        # Calcula os horários dinamicamente
-        START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S%z" -d "+1 minute")
-        END_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S%z" -d "+1 hour 1 minute")
+        # Calcula os horários dinamicamente no formato ISO 8601 (com 'Z' indicando UTC)
+        START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ" -d "+1 minute")
+        END_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ" -d "+1 hour 1 minute")
 
         echo "Calculated Start Time: $START_TIME"
         echo "Calculated End Time: $END_TIME"
@@ -81,6 +81,7 @@ jobs:
 
     - name: Reserva de device 
       run: |
+        # Faz a chamada à API para reservar o dispositivo
         RESPONSE=$(curl -k -s -o response.json -w "%{http_code}" -X POST "https://labmobile.keeggo.com/rest/v2/public/reservation" \
           -H "Authorization: Bearer ${{ env.TOKEN }}" \
           -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
