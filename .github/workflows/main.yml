@@ -73,8 +73,8 @@ jobs:
           -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
           -H "Content-Type: application/json" \
           -d '{
-            "startTime": "2024-11-24T13:40:00-03:00",
-            "endTime": "2024-11-24T14:40:00-03:00",
+            "startTime": "2024-11-24T16:40:00-03:00",
+            "endTime": "2024-11-24T17:40:00-03:00",
             "releaseOnJobCompletion": false,
             "deviceCapabilities": {
               "deviceName": "Galaxy A52",
