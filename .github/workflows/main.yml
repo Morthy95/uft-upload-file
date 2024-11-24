@@ -29,10 +29,7 @@ jobs:
           -d "{\"client\":\"$CLIENT\", \"secret\":\"$SECRET\", \"tenant\":\"$TENANT\"}")
 
         echo "Full Response:"
-        echo "Response: $RESPONSE"
-
-        # Validar se o JSON está bem formatado
-        echo "$RESPONSE" | jq .
+        echo "$RESPONSE"
 
         # Extrair o cabeçalho x-hp4msecret
         HEADER_X_HP4MSECRET=$(echo "$RESPONSE" | grep -i "x-hp4msecret" | awk '{print $2}' | tr -d '\r')
@@ -63,11 +60,8 @@ jobs:
         echo "X_HP4MSECRET=$HEADER_X_HP4MSECRET" >> $GITHUB_ENV
 
     - name: Print Token and Header
-      env:
-        TOKEN: ${{ env.TOKEN }}
-        X_HP4MSECRET: ${{ env.X_HP4MSECRET }}
       run: |
         echo "The retrieved token is:"
-        echo "$TOKEN"
+        echo "${{ env.TOKEN }}"
         echo "The x-hp4msecret header is:"
-        echo "$X_HP4MSECRET"
+        echo "${{ env.X_HP4MSECRET }}"
