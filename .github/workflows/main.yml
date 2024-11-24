@@ -68,7 +68,7 @@ jobs:
 
     - name: Reserva de device 
       run: |
-        curl -X POST "https://<url-da-api>/reserve-device" \
+        curl -X POST "https://labmobile.keeggo.com/rest/v2/public/reservation" \
         -H "Authorization: Bearer  ${{ env.TOKEN }}"" \
         -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
         -H "Content-Type: application/json" \
