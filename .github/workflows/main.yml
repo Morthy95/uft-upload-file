@@ -20,7 +20,7 @@ jobs:
       run: |
         echo "Generating token with the following details:"
         echo "CLIENT: $CLIENT"
-        echo "SECRET: $SECRET"
+        echo "SECRET: ***"
         echo "TENANT: $TENANT"
 
         # Captura a resposta do curl
@@ -62,32 +62,36 @@ jobs:
     - name: Print Token and Header
       run: |
         echo "The retrieved token is:"
-        echo "${{ env.TOKEN }}"
+        echo "***" # Não exibe o token diretamente nos logs
         echo "The x-hp4msecret header is:"
         echo "${{ env.X_HP4MSECRET }}"
 
     - name: Reserva de device 
       run: |
         RESPONSE=$(curl -s -o response.json -w "%{http_code}" -X POST "https://labmobile.keeggo.com/rest/v2/public/reservation" \
-        -H "Authorization: Bearer  ${{ env.TOKEN }}"" \
-        -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
-        -H "Content-Type: application/json" \
-        -d '{
-          "startTime": "2024-11-24T13:40:00-03:00",
-          "endTime": "2024-11-24T14:40:00-03:00",
-          "releaseOnJobCompletion": false,
-          "deviceCapabilities": {
-          "deviceName": "Galaxy A52",
-          "udid": "RQCT302RQJH"
-                                }
-            }')
+          -H "Authorization: Bearer ${{ env.TOKEN }}" \
+          -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "startTime": "2024-11-24T13:40:00-03:00",
+            "endTime": "2024-11-24T14:40:00-03:00",
+            "releaseOnJobCompletion": false,
+            "deviceCapabilities": {
+              "deviceName": "Galaxy A52",
+              "udid": "RQCT302RQJH"
+            }
+          }')
+
+        echo "HTTP Response Code: $RESPONSE"
+
         if [ "$RESPONSE" -ne 200 ]; then
-        echo "Error: Failed to reserve device. Response code: $RESPONSE"
-        cat response.json
-        exit 1
+          echo "Error: Failed to reserve device. Response code: $RESPONSE"
+          cat response.json
+          exit 1
         fi
 
         echo "Device reserved successfully:"
         cat response.json
+
 
         
