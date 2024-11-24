@@ -1,4 +1,4 @@
-  name: Generate Token and Use It
+name: Generate Token and Use It
 
 on:
   workflow_dispatch: # Permite execução manual do workflow
@@ -9,9 +9,8 @@ jobs:
     environment: secrets
 
     steps:
-    
     - name: Install jq
-      run: sudo apt-get install jq
+      run: sudo apt-get install -y jq
 
     - name: Generate OAuth Token
       env:
@@ -24,33 +23,31 @@ jobs:
         echo "SECRET: $SECRET"
         echo "TENANT: $TENANT"
 
-      
-        curl -k -X POST https://labmobile.keeggo.com/rest/oauth2/token \
+        # Captura a resposta do curl
+        RESPONSE=$(curl -s -k -X POST https://labmobile.keeggo.com/rest/oauth2/token \
           -H "Content-Type: application/json" \
-          -d "{\"client\":\"$CLIENT\", \"secret\":\"$SECRET\", \"tenant\":\"$TENANT\"}"
+          -d "{\"client\":\"$CLIENT\", \"secret\":\"$SECRET\", \"tenant\":\"$TENANT\"}")
 
         echo "Response: $RESPONSE"
-        
+
         # Validar se o JSON está bem formatado
         echo "$RESPONSE" | jq .
-        
+
         # Extrair o token usando jq
         TOKEN=$(echo $RESPONSE | jq -r '.access_token')
-        echo "Token: $TOKEN"
 
-          # Verifica se o token foi extraído corretamente
+        # Verifica se o token foi extraído corretamente
         if [ -z "$TOKEN" ]; then
           echo "Error: Token not retrieved from the response"
           exit 1
         fi
+
         echo "Token: $TOKEN"
 
         # Salvar o token como variável de ambiente para o próximo passo
         echo "TOKEN=$TOKEN" >> $GITHUB_ENV
-          
+
     - name: Print Token
-      env:
-        TOKEN: ${{ env.TOKEN }}
       run: |
         echo "The retrieved token is:"
         echo "$TOKEN"
