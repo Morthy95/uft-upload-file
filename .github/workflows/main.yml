@@ -1,4 +1,4 @@
-name: Generate Token and Use It
+  name: Generate Token and Use It
 
 on:
   workflow_dispatch: # Permite execução manual do workflow
@@ -23,12 +23,17 @@ jobs:
         echo "CLIENT: $CLIENT"
         echo "SECRET: $SECRET"
         echo "TENANT: $TENANT"
+
+        #captura a resposta
         curl -k -X POST https://labmobile.keeggo.com/rest/oauth2/token \
           -H "Content-Type: application/json" \
           -d "{\"client\":\"$CLIENT\", \"secret\":\"$SECRET\", \"tenant\":\"$TENANT\"}"
 
         echo "Response: $RESPONSE"
-
+        
+        # Validar se o JSON está bem formatado
+        echo "$RESPONSE" | jq .
+        
         # Extrair o token usando jq
         TOKEN=$(echo $RESPONSE | jq -r '.access_token')
         echo "Token: $TOKEN"
