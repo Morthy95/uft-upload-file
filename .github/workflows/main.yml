@@ -24,7 +24,7 @@ jobs:
         echo "SECRET: $SECRET"
         echo "TENANT: $TENANT"
 
-        #captura a resposta
+      
         curl -k -X POST https://labmobile.keeggo.com/rest/oauth2/token \
           -H "Content-Type: application/json" \
           -d "{\"client\":\"$CLIENT\", \"secret\":\"$SECRET\", \"tenant\":\"$TENANT\"}"
