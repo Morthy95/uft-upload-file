@@ -10,9 +10,9 @@ jobs:
     steps:
     - name: Generate OAuth Token
       env:
-        CLIENT: ${{ vars.CLIENT }}
-        SECRET: ${{ vars.SECRET }}
-        TENANT: ${{ vars.TENANT }}
+        CLIENT: ${{ secrets.CLIENT }}
+        SECRET: ${{ secrets.SECRET }}
+        TENANT: ${{ secrets.TENANT }}
       run: |
         echo "Generating token with the following details:"
         echo "CLIENT: $CLIENT"
