@@ -65,3 +65,29 @@ jobs:
         echo "${{ env.TOKEN }}"
         echo "The x-hp4msecret header is:"
         echo "${{ env.X_HP4MSECRET }}"
+
+    - name: Reserva de device 
+      run: |
+        curl -X POST "https://<url-da-api>/reserve-device" \
+        -H "Authorization: Bearer  ${{ env.TOKEN }}"" \
+        -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "startTime": "2024-11-24T13:40:00-03:00",
+          "endTime": "2024-11-24T14:40:00-03:00",
+          "releaseOnJobCompletion": false,
+          "deviceCapabilities": {
+          "deviceName": "Galaxy A52",
+          "udid": "RQCT302RQJH"
+                                }
+            }')
+        if [ "$RESPONSE" -ne 200 ]; then
+        echo "Error: Failed to reserve device. Response code: $RESPONSE"
+        cat response.json
+        exit 1
+        fi
+
+        echo "Device reserved successfully:"
+        cat response.json
+
+        
