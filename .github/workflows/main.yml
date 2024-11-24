@@ -24,19 +24,33 @@ jobs:
         echo "TENANT: $TENANT"
 
         # Captura a resposta do curl
-        RESPONSE=$(curl -s -k -X POST https://labmobile.keeggo.com/rest/oauth2/token \
+        RESPONSE=$(curl -i-s -k -X POST https://labmobile.keeggo.com/rest/oauth2/token \
           -H "Content-Type: application/json" \
           -d "{\"client\":\"$CLIENT\", \"secret\":\"$SECRET\", \"tenant\":\"$TENANT\"}")
 
+        echo "Full Response:"
         echo "Response: $RESPONSE"
 
         # Validar se o JSON está bem formatado
         echo "$RESPONSE" | jq .
 
-        # Extrair o token usando jq
-        TOKEN=$(echo $RESPONSE | jq -r '.access_token')
+        # Extrair o cabeçalho x-hp4msecret
+        HEADER_X_HP4MSECRET=$(echo "$RESPONSE" | grep -i "x-hp4msecret" | awk '{print $2}' | tr -d '\r')
 
-        # Verifica se o token foi extraído corretamente
+        # Validar o cabeçalho x-hp4msecret
+        if [ -z "$HEADER_X_HP4MSECRET" ]; then
+          echo "Error: x-hp4msecret header not retrieved from the response"
+          exit 1
+        fi
+
+        echo "x-hp4msecret: $HEADER_X_HP4MSECRET"
+
+        # Extrair o corpo da resposta
+        BODY=$(echo "$RESPONSE" | sed -n '/^\r$/,$p' | tail -n +2)
+
+        # Validar e extrair o token usando jq
+        TOKEN=$(echo "$BODY" | jq -r '.access_token')
+
         if [ -z "$TOKEN" ]; then
           echo "Error: Token not retrieved from the response"
           exit 1
@@ -44,10 +58,16 @@ jobs:
 
         echo "Token: $TOKEN"
 
-        # Salvar o token como variável de ambiente para o próximo passo
+        # Salvar o token e o cabeçalho como variáveis de ambiente para os próximos passos
         echo "TOKEN=$TOKEN" >> $GITHUB_ENV
+        echo "X_HP4MSECRET=$HEADER_X_HP4MSECRET" >> $GITHUB_ENV
 
-    - name: Print Token
+    - name: Print Token and Header
+      env:
+        TOKEN: ${{ env.TOKEN }}
+        X_HP4MSECRET: ${{ env.X_HP4MSECRET }}
       run: |
         echo "The retrieved token is:"
         echo "$TOKEN"
+        echo "The x-hp4msecret header is:"
+        echo "$X_HP4MSECRET"
