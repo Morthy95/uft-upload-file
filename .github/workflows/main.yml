@@ -1,4 +1,4 @@
-name: Generate Token and Use It
+name: Retrieve Token and Reserve Device
 
 on:
   workflow_dispatch: # Permite execução manual do workflow
@@ -11,6 +11,19 @@ jobs:
     steps:
     - name: Install jq
       run: sudo apt-get install -y jq
+
+    - name: Calculate Start and End Times
+      run: |
+        # Calcula os horários dinamicamente
+        START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S%z" -d "+1 minute")
+        END_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S%z" -d "+1 hour 1 minute")
+
+        echo "Calculated Start Time: $START_TIME"
+        echo "Calculated End Time: $END_TIME"
+
+        # Salva os horários como variáveis de ambiente para os próximos passos
+        echo "START_TIME=$START_TIME" >> $GITHUB_ENV
+        echo "END_TIME=$END_TIME" >> $GITHUB_ENV
 
     - name: Generate OAuth Token
       env:
@@ -72,15 +85,15 @@ jobs:
           -H "Authorization: Bearer ${{ env.TOKEN }}" \
           -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
           -H "Content-Type: application/json" \
-          -d '{
-            "startTime": "2024-11-24T16:40:00-03:00",
-            "endTime": "2024-11-24T17:40:00-03:00",
-            "releaseOnJobCompletion": false,
-            "deviceCapabilities": {
-              "deviceName": "Galaxy A52",
-              "udid": "RQCT302RQJH"
+          -d "{
+            \"startTime\": \"${{ env.START_TIME }}\",
+            \"endTime\": \"${{ env.END_TIME }}\",
+            \"releaseOnJobCompletion\": false,
+            \"deviceCapabilities\": {
+              \"deviceName\": \"Galaxy A52\",
+              \"udid\": \"RQCT302RQJH\"
             }
-          }')
+          }")
 
         echo "HTTP Response Code: $RESPONSE"
 
@@ -92,6 +105,3 @@ jobs:
 
         echo "Device reserved successfully:"
         cat response.json
-
-
-        
