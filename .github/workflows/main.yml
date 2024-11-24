@@ -9,6 +9,10 @@ jobs:
     environment: secrets
 
     steps:
+    
+    - name: Install jq
+      run: sudo apt-get install jq
+
     - name: Generate OAuth Token
       env:
         CLIENT: ${{ vars.CLIENT }}
@@ -32,8 +36,7 @@ jobs:
         # Salvar o token como variável de ambiente para o próximo passo
         echo "TOKEN=$TOKEN" >> $GITHUB_ENV
         
-    - name: Install jq
-      run: sudo apt-get install jq
+   
       
     - name: Print Token
       env:
