@@ -104,6 +104,19 @@ jobs:
           cat response.json
           exit 1
         fi
-
         echo "Device reserved successfully:"
         cat response.json
+        
+    - name: Download APK
+      run: |
+        curl -o app.apk "https://apkpure.com/br/k-9-mail/com.fsck.k9/downloading"
+        echo "APK downloaded successfully!"
+
+        if [ -f "app.apk" ]; then
+        echo "APK downloaded successfully!"
+        else
+        echo "Error: APK download failed."
+        exit 1
+        fi
+
+     
