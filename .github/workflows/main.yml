@@ -6,7 +6,7 @@ on:
 jobs:
   generate-token:
     runs-on: ubuntu-latest
-    environment: <nome-do-seu-ambiente> # Substitua pelo nome do ambiente configurado
+    environment: secrets
 
     steps:
     - name: Generate OAuth Token
