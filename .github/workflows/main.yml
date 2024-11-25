@@ -15,7 +15,6 @@ jobs:
     - name: Calculate Start and End Times
       run: |
         # Calcula os horários dinamicamente no formato ISO 8601 (com 'Z' indicando UTC)
-        
         START_TIME=$(TZ=America/Sao_Paulo date +"%Y-%m-%dT%H:%M:%S%:z" -d "+1 minute")
         END_TIME=$(TZ=America/Sao_Paulo date +"%Y-%m-%dT%H:%M:%S%:z" -d "+1 hour 1 minute")
       
@@ -113,10 +112,36 @@ jobs:
         echo "APK downloaded successfully!"
 
         if [ -f "app.apk" ]; then
-        echo "APK downloaded successfully!"
+          echo "APK downloaded successfully!"
         else
-        echo "Error: APK download failed."
-        exit 1
+          echo "Error: APK download failed."
+          exit 1
         fi
+
+    - name: Enviar Artefato para UFT Mobile
+      run: |
+        echo "Iniciando upload do artefato para o UFT Mobile..."
+        RESPONSE=$(curl -X POST "https://labmobile.keeggo.com/rest/apps" \
+          -H "Authorization: Bearer ${{ env.TOKEN }}" \
+          -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
+          -F "file=@app.apk" \
+          -F "fileName=K-9 Mail_8.1_APKPure.apk" \
+          -F "description=Aplicativo Android para teste" \
+          -F "overrideExistingFile=true" \
+          -F "workspaceId=de896153-bda6-4e11-a197-aa99b4a1f75e" \
+          -w "%{http_code}" \
+          -o upload_response.json)
+
+        HTTP_CODE=$(tail -n 1 <<< "$RESPONSE")
+        echo "HTTP Response Code: $HTTP_CODE"
+
+        if [ "$HTTP_CODE" -ne 200 ]; then
+          echo "Erro no upload do artefato. Resposta completa:"
+          cat upload_response.json
+          exit 1
+        fi
+
+        echo "Upload concluído com sucesso! Resposta:"
+        cat upload_response.json
 
      
