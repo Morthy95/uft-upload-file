@@ -96,10 +96,12 @@ jobs:
             }
           }")
 
-        echo "HTTP Response Code: $RESPONSE"
+        HTTP_CODE=$(tail -n 1 <<< "$RESPONSE")
+        
+        echo "HTTP Response Code: $HTTP_CODE"
 
-        if [ "$RESPONSE" -ne 200 ]; then
-          echo "Error: Failed to reserve device. Response code: $RESPONSE"
+        if [ "$HTTP_CODE" -ne 200 ]; then
+          echo "Error: Failed to reserve device. Response code: $HTTP_CODE"
           cat response.json
           exit 1
         fi
@@ -118,6 +120,16 @@ jobs:
           exit 1
         fi
 
+    - name: Verificar APK
+      run: |
+        echo "Verificando o arquivo APK baixado..."
+        if unzip -l app.apk | grep -q AndroidManifest.xml; then
+          echo "O arquivo APK é válido e contém o AndroidManifest.xml."
+        else
+          echo "Erro: O arquivo APK não contém o AndroidManifest.xml. O processo será interrompido."
+          exit 1
+        fi
+
     - name: Enviar Artefato para UFT Mobile
       run: |
         echo "Iniciando upload do artefato para o UFT Mobile..."
@@ -125,14 +137,13 @@ jobs:
           -H "Authorization: Bearer ${{ env.TOKEN }}" \
           -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
           -F "file=@app.apk" \
-          -F "fileName=K-9 Mail_8.1_APKPure.apk" \
+          -F "fileName=K-9_Mail_8.1_APKPure.apk" \
           -F "description=Aplicativo Android para teste" \
           -F "overrideExistingFile=true" \
           -F "workspaceId=de896153-bda6-4e11-a197-aa99b4a1f75e" \
           -o upload_response.json -w "%{http_code}")
 
-        # Capturar o código HTTP corretamente
-        HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
+        HTTP_CODE=$(tail -n 1 <<< "$RESPONSE")
         
         echo "HTTP Response Code: $HTTP_CODE"
 
@@ -144,5 +155,3 @@ jobs:
 
         echo "Upload concluído com sucesso! Resposta:"
         cat upload_response.json
-
-     
