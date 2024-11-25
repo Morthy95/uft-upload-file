@@ -110,7 +110,7 @@ jobs:
         
     - name: Download APK
       run: |
-        curl -o app.apk "https://apkpure.com/br/k-9-mail/com.fsck.k9/downloading"
+        curl -o app.apk "https://github.com/k9mail/k-9/releases/download/5.600/k9-5.600.apk"
         echo "APK downloaded successfully!"
 
         if [ -f "app.apk" ]; then
