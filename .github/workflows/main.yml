@@ -1,10 +1,10 @@
-name: Retrieve Token and Reserve Device
+name: Retrieve Token, Reserve Device and Upload Artefact
 
 on:
   workflow_dispatch: # Permite execução manual do workflow
 
 jobs:
-  generate-token:
+  upload-aplication:
     runs-on: ubuntu-latest
     environment: secrets
 
