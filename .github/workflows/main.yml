@@ -121,7 +121,7 @@ jobs:
     - name: Enviar Artefato para UFT Mobile
       run: |
         echo "Iniciando upload do artefato para o UFT Mobile..."
-        RESPONSE=$(curl -X POST "https://labmobile.keeggo.com/rest/apps" \
+        RESPONSE=$(curl -k -X POST "https://labmobile.keeggo.com/rest/apps" \
           -H "Authorization: Bearer ${{ env.TOKEN }}" \
           -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
           -F "file=@app.apk" \
