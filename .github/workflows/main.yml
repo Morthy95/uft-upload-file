@@ -129,10 +129,11 @@ jobs:
           -F "description=Aplicativo Android para teste" \
           -F "overrideExistingFile=true" \
           -F "workspaceId=de896153-bda6-4e11-a197-aa99b4a1f75e" \
-          -w "%{http_code}" \
-          -o upload_response.json)
+          -o upload_response.json -w "%{http_code}")
 
-        HTTP_CODE=$(tail -n 1 <<< "$RESPONSE")
+        # Capturar o código HTTP corretamente
+        HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
+        
         echo "HTTP Response Code: $HTTP_CODE"
 
         if [ "$HTTP_CODE" -ne 200 ]; then
