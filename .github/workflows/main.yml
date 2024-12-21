@@ -1,16 +1,15 @@
 name: Retrieve Token, Reserve Device and Upload Artefact
 
 on:
-  workflow_dispatch: # Permite execução manual do workflow
+  workflow_dispatch:
 
 jobs:
   upload-aplication:
-    runs-on: ubuntu-latest
-    environment: secrets
+    runs-on: self-hosted  # Usa um runner self-hosted configurado no Red Hat
 
     steps:
-    - name: Install jq
-      run: sudo apt-get install -y jq
+    - name: Install jq and unzip (Red Hat)
+      run: sudo yum install -y jq unzip
 
     - name: Calculate Start and End Times
       run: |
@@ -21,7 +20,6 @@ jobs:
         echo "Calculated Start Time: $START_TIME"
         echo "Calculated End Time: $END_TIME"
 
-        # Salva os horários como variáveis de ambiente para os próximos passos
         echo "START_TIME=$START_TIME" >> $GITHUB_ENV
         echo "END_TIME=$END_TIME" >> $GITHUB_ENV
 
