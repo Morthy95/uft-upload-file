@@ -72,8 +72,8 @@ jobs:
             \"endTime\": \"${{ env.END_TIME }}\",
             \"releaseOnJobCompletion\": false,
             \"deviceCapabilities\": {
-              \"deviceName\": \"Galaxy A52\",
-              \"udid\": \"RQCT302RQJH\"
+              \"deviceName\": \"iPhone Se\",
+              \"udid\": \"00008030-00040D410247802E\"
             }
           }")
 
