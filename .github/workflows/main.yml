@@ -44,7 +44,6 @@ jobs:
         fi
         echo "x-hp4msecret: $HEADER_X_HP4MSECRET"
 
-        BODY=$(echo "$RESPONSE" | sed -n '/^\r$/,$p' | tail -n +2)
         TOKEN=$(echo "$BODY" | jq -r '.access_token')
   
 
