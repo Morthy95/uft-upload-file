@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - name: Install jq and unzip (Red Hat)
-      run: sudo yum install -y jq unzip
+      run: sudo apt-get install -y jq unzip
 
     - name: Calculate Start and End Times
       run: |
