@@ -25,9 +25,9 @@ jobs:
 
     - name: Generate OAuth Token
       env:
-        CLIENT: ${{ vars.CLIENT }}
-        SECRET: ${{ vars.SECRET }}
-        TENANT: ${{ vars.TENANT }}
+        CLIENT: ${{ secrets.CLIENT }}
+        SECRET: ${{ secrets.SECRET }}
+        TENANT: ${{ secrets.TENANT }}
       run: |
         echo "Gerando o token OAuth..."
         RESPONSE=$(curl -i -s -k -X POST https://labmobile.keeggo.com/rest/oauth2/token \
