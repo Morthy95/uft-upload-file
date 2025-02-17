@@ -59,6 +59,7 @@ jobs:
       run: |
         echo "Token e cabeçalho obtidos:"
         echo "x-hp4msecret: ${{ env.X_HP4MSECRET }}"
+        echo "xtoken: ${{ env.TOKEN }}"
 
     - name: Reserva de device 
       run: |
