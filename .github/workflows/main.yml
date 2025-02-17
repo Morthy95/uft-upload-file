@@ -5,7 +5,7 @@ on:
 
 jobs:
   upload-aplication:
-    runs-on: self-hosted  # Usa um runner self-hosted configurado no Red Hat
+    runs-on: ubuntu-latest  # Usa um runner self-hosted configurado no Red Hat
 
     steps:
     - name: Install jq and unzip (Red Hat)
