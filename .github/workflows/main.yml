@@ -2,28 +2,31 @@ name: Retrieve Token, Reserve Device and Upload Artefact
 
 on:
   workflow_dispatch:
+    inputs:
+      artefact_url:
+        description: 'URL do artefato a ser baixado'
+        required: true
 
 jobs:
   upload-aplication:
     runs-on: ubuntu-latest  # Usa um runner self-hosted configurado no Red Hat
 
     steps:
-    - name: Install jq and unzip (Red Hat)
+    - name: Install jq and unzip (Red Hat)  # Instala ferramentas necessárias para manipulação de JSON e arquivos zipados
       run: sudo apt-get install -y jq unzip
 
-    - name: Calculate Start and End Times
+    - name: Calculate Start and End Times  # Calcula os horários de início e término para reserva de dispositivo no formato ISO 8601 (UTC)
       run: |
         echo "Calculando horários em formato ISO 8601 (UTC)..."
         START_TIME=$(TZ=America/Sao_Paulo date +"%Y-%m-%dT%H:%M:%S%:z" -d "+1 minute")
         END_TIME=$(TZ=America/Sao_Paulo date +"%Y-%m-%dT%H:%M:%S%:z" -d "+1 hour 1 minute")
-      
+
         echo "Calculated Start Time: $START_TIME"
         echo "Calculated End Time: $END_TIME"
-
         echo "START_TIME=$START_TIME" >> $GITHUB_ENV
         echo "END_TIME=$END_TIME" >> $GITHUB_ENV
 
-    - name: Generate OAuth Token
+    - name: Generate OAuth Token  # Gera o token OAuth necessário para autenticação nas APIs do UFT Mobile
       env:
         CLIENT: ${{ secrets.CLIENT }}
         SECRET: ${{ secrets.SECRET }}
@@ -33,33 +36,27 @@ jobs:
         RESPONSE=$(curl -i -s -k -X POST https://labmobile.keeggo.com/rest/oauth2/token \
           -H "Content-Type: application/json" \
           -d "{\"client\":\"$CLIENT\", \"secret\":\"$SECRET\", \"tenant\":\"$TENANT\"}")
-
         echo "Resposta completa:"
         echo "$RESPONSE"
-
         HEADER_X_HP4MSECRET=$(echo "$RESPONSE" | grep -i "x-hp4msecret" | awk '{print $2}' | tr -d '\r')
         if [ -z "$HEADER_X_HP4MSECRET" ]; then
           echo "Erro: Cabeçalho x-hp4msecret não encontrado."
           exit 1
         fi
         echo "x-hp4msecret: $HEADER_X_HP4MSECRET"
-
         BODY=$(echo "$RESPONSE" | sed -n '/^\r$/,$p' | tail -n +2)
-        echo "Debug"
-        echo "$BODY"
         TOKEN=$(echo "$BODY" | jq -r '.access_token')
-  
 
         echo "TOKEN=$TOKEN" >> $GITHUB_ENV
         echo "X_HP4MSECRET=$HEADER_X_HP4MSECRET" >> $GITHUB_ENV
 
-    - name: Print Token and Header
+    - name: Print Token and Header  # Exibe o token e o cabeçalho de autenticação para verificação
       run: |
         echo "Token e cabeçalho obtidos:"
         echo "x-hp4msecret: ${{ env.X_HP4MSECRET }}"
         echo "xtoken: ${{ env.TOKEN }}"
 
-    - name: Reserva de device 
+    - name: Reserva de device  # Faz a reserva do dispositivo especificado com os horários calculados
       run: |
         echo "Reservando o dispositivo..."
         RESPONSE=$(curl -k -s -o response.json -w "%{http_code}" -X POST "https://labmobile.keeggo.com/rest/v2/public/reservation" \
@@ -75,10 +72,8 @@ jobs:
               \"udid\": \"00008030-00040D410247802E\"
             }
           }")
-
         HTTP_CODE=$(tail -n 1 <<< "$RESPONSE")
         echo "HTTP Response Code: $HTTP_CODE"
-
         if [ "$HTTP_CODE" -ne 200 ]; then
           echo "Erro ao reservar o dispositivo. Resposta completa:"
           cat response.json
@@ -86,50 +81,49 @@ jobs:
         fi
         echo "Dispositivo reservado com sucesso:"
         cat response.json
-        
-    - name: Download APK
-      run: |
-        echo "Baixando o APK..."
-        curl -L -o app.apk "https://github.com/k9mail/k-9/releases/download/5.600/k9-5.600.apk"
 
-        if [ -f "app.apk" ]; then
-          echo "APK baixado com sucesso."
+    - name: Download Artefato (Inserção solicitada)  # 🚀 **PARTE MODIFICADA**: Artefato agora é fornecido via input do usuário e será usado no upload
+      run: |
+        echo "Baixando o artefato da URL fornecida: ${{ github.event.inputs.artefact_url }}"
+        ARTEFATO_NOME=$(basename "${{ github.event.inputs.artefact_url }}")
+        curl -L -o "$ARTEFATO_NOME" "${{ github.event.inputs.artefact_url }}"
+        if [ -f "$ARTEFATO_NOME" ]; then
+          echo "Artefato baixado com sucesso: $ARTEFATO_NOME"
+          echo "ARTEFATO_NOME=$ARTEFATO_NOME" >> $GITHUB_ENV
         else
-          echo "Erro: Falha no download do APK."
+          echo "Erro: Falha no download do artefato."
           exit 1
         fi
 
-    - name: Verificar APK
+    - name: Verificar APK  # Verifica se o APK contém o arquivo AndroidManifest.xml, garantindo a validade do arquivo
       run: |
         echo "Verificando o arquivo APK baixado..."
-        if unzip -l app.apk | grep -q AndroidManifest.xml; then
+        if unzip -l "${{ env.ARTEFATO_NOME }}" | grep -q AndroidManifest.xml; then
           echo "O arquivo APK é válido e contém o AndroidManifest.xml."
         else
           echo "Erro: O arquivo APK não contém o AndroidManifest.xml. O processo será interrompido."
           exit 1
         fi
 
-    - name: Enviar Artefato para UFT Mobile
+    - name: Enviar Artefato para UFT Mobile  # Faz o upload do mesmo arquivo baixado para o ambiente do UFT Mobile
       run: |
-        echo "Iniciando upload do artefato para o UFT Mobile..."
+        echo "Iniciando upload do artefato (${ env.ARTEFATO_NOME }) para o UFT Mobile..."
         RESPONSE=$(curl -k -X POST "https://labmobile.keeggo.com/rest/apps" \
           -H "Authorization: Bearer ${{ env.TOKEN }}" \
           -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
-          -F "file=@app.apk" \
-          -F "fileName=K-9_Mail_8.1_APKPure.apk" \
+          -F "file=@${{ env.ARTEFATO_NOME }}" \
+          -F "fileName=${{ env.ARTEFATO_NOME }}" \
           -F "description=Aplicativo Android para teste" \
           -F "overrideExistingFile=true" \
           -F "workspaceId=de896153-bda6-4e11-a197-aa99b4a1f75e" \
           -o upload_response.json -w "%{http_code}")
-
         HTTP_CODE=$(tail -n 1 <<< "$RESPONSE")
         echo "HTTP Response Code: $HTTP_CODE"
-
         if [ "$HTTP_CODE" -ne 200 ]; then
           echo "Erro no upload do artefato. Resposta completa:"
           cat upload_response.json
           exit 1
         fi
-
         echo "Upload concluído com sucesso! Resposta:"
         cat upload_response.json
+
