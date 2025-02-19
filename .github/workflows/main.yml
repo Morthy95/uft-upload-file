@@ -105,19 +105,19 @@ jobs:
           exit 1
         fi
 
-    - name: Enviar Artefato para UFT Mobile  # Faz o upload do mesmo arquivo baixado para o ambiente do UFT Mobile
+    - name: Enviar Artefato para UFT Mobile
+
       run: |
-        echo "Iniciando upload do artefato ($ARTEFATO_NOME) para o UFT Mobile..."
-        RESPONSE=$(curl -k -X POST "https://labmobile.keeggo.com/rest/apps" \
-          -H "Authorization: Bearer $TOKEN" \
-          -H "x-hp4msecret: $X_HP4MSECRET" \
+        echo "Iniciando upload do artefato para o UFT Mobile..."
+        RESPONSE=$(curl -k -X POST https://labmobile.keeggo.com/rest/apps \
+          -H "Authorization: Bearer ${{ env.TOKEN }}" \
+          -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
           -F "file=@$ARTEFATO_NOME" \
           -F "fileName=$ARTEFATO_NOME" \
           -F "description=Aplicativo Android para teste" \
           -F "overrideExistingFile=true" \
           -F "workspaceId=de896153-bda6-4e11-a197-aa99b4a1f75e" \
           -o upload_response.json -w "%{http_code}")
-
         HTTP_CODE=$(tail -n 1 <<< "$RESPONSE")
         echo "HTTP Response Code: $HTTP_CODE"
         if [ "$HTTP_CODE" -ne 200 ]; then
@@ -127,7 +127,6 @@ jobs:
         fi
         echo "Upload concluído com sucesso! Resposta:"
         cat upload_response.json
-
 
    
 
