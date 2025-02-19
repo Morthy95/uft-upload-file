@@ -53,19 +53,19 @@ jobs:
     - name: Print Token and Header  # Exibe o token e o cabeçalho de autenticação para verificação
       run: |
         echo "Token e cabeçalho obtidos:"
-        echo "x-hp4msecret: ${{ env.X_HP4MSECRET }}"
-        echo "xtoken: ${{ env.TOKEN }}"
+        echo "x-hp4msecret: $X_HP4MSECRET"
+        echo "xtoken: $TOKEN"
 
     - name: Reserva de device  # Faz a reserva do dispositivo especificado com os horários calculados
       run: |
         echo "Reservando o dispositivo..."
         RESPONSE=$(curl -k -s -o response.json -w "%{http_code}" -X POST "https://labmobile.keeggo.com/rest/v2/public/reservation" \
-          -H "Authorization: Bearer ${{ env.TOKEN }}" \
-          -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "x-hp4msecret: $X_HP4MSECRET" \
           -H "Content-Type: application/json" \
           -d "{
-            \"startTime\": \"${{ env.START_TIME }}\",
-            \"endTime\": \"${{ env.END_TIME }}\",
+            \"startTime\": \"$START_TIME\",
+            \"endTime\": \"$END_TIME\",
             \"releaseOnJobCompletion\": false,
             \"deviceCapabilities\": {
               \"deviceName\": \"iPhone Se\",
@@ -98,7 +98,7 @@ jobs:
     - name: Verificar APK  # Verifica se o APK contém o arquivo AndroidManifest.xml, garantindo a validade do arquivo
       run: |
         echo "Verificando o arquivo APK baixado..."
-        if unzip -l "${{ env.ARTEFATO_NOME }}" | grep -q AndroidManifest.xml; then
+        if unzip -l "$ARTEFATO_NOME" | grep -q AndroidManifest.xml; then
           echo "O arquivo APK é válido e contém o AndroidManifest.xml."
         else
           echo "Erro: O arquivo APK não contém o AndroidManifest.xml. O processo será interrompido."
@@ -107,16 +107,17 @@ jobs:
 
     - name: Enviar Artefato para UFT Mobile  # Faz o upload do mesmo arquivo baixado para o ambiente do UFT Mobile
       run: |
-        echo "Iniciando upload do artefato (${ env.ARTEFATO_NOME }) para o UFT Mobile..."
+        echo "Iniciando upload do artefato ($ARTEFATO_NOME) para o UFT Mobile..."
         RESPONSE=$(curl -k -X POST "https://labmobile.keeggo.com/rest/apps" \
-          -H "Authorization: Bearer ${{ env.TOKEN }}" \
-          -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
-          -F "file=@${{ env.ARTEFATO_NOME }}" \
-          -F "fileName=${{ env.ARTEFATO_NOME }}" \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "x-hp4msecret: $X_HP4MSECRET" \
+          -F "file=@$ARTEFATO_NOME" \
+          -F "fileName=$ARTEFATO_NOME" \
           -F "description=Aplicativo Android para teste" \
           -F "overrideExistingFile=true" \
           -F "workspaceId=de896153-bda6-4e11-a197-aa99b4a1f75e" \
           -o upload_response.json -w "%{http_code}")
+
         HTTP_CODE=$(tail -n 1 <<< "$RESPONSE")
         echo "HTTP Response Code: $HTTP_CODE"
         if [ "$HTTP_CODE" -ne 200 ]; then
@@ -126,4 +127,7 @@ jobs:
         fi
         echo "Upload concluído com sucesso! Resposta:"
         cat upload_response.json
+
+
+   
 
