@@ -99,10 +99,10 @@ jobs:
       run: |
         echo "Verificando o artefato baixado: $ARTEFATO_NOME"
         
-        # Obtém a extensão do arquivo
-        EXTENSÃO="${ARTEFATO_NOME##*.}"
+        # Obtém a extensão do arquivo de forma correta
+        EXTENSAO=$(echo "$ARTEFATO_NOME" | awk -F. '{print tolower($NF)}')
     
-        if [[ "$EXTENSÃO" == "apk" ]]; then
+        if [[ "$EXTENSAO" == "apk" ]]; then
           echo "O artefato é um APK. Verificando AndroidManifest.xml..."
           if unzip -l "$ARTEFATO_NOME" | grep -q AndroidManifest.xml; then
             echo "O arquivo APK é válido e contém o AndroidManifest.xml."
@@ -110,7 +110,7 @@ jobs:
             echo "Erro: O arquivo APK não contém AndroidManifest.xml. O processo será interrompido."
             exit 1
           fi
-        elif [[ "$EXTENSÃO" == "ipa" ]]; then
+        elif [[ "$EXTENSAO" == "ipa" ]]; then
           echo "O artefato é um IPA. Verificando Info.plist..."
           unzip -q "$ARTEFATO_NOME" -d extracted
           if [ -f extracted/Payload/*.app/Info.plist ]; then
@@ -123,6 +123,7 @@ jobs:
           echo "Erro: Extensão de arquivo não reconhecida. Apenas APK e IPA são suportados."
           exit 1
         fi
+
 
 
     - name: Enviar Artefato para UFT Mobile
