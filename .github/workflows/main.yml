@@ -128,5 +128,29 @@ jobs:
         echo "Upload concluído com sucesso! Resposta:"
         cat upload_response.json
 
+    - name: Instalar Aplicativo no Dispositivo
+      run: |
+        echo "Extraindo informações da reserva..."
+        DEVICE_ID=$(jq -r '.device.id' response.json)
+        echo "Dispositivo reservado: $DEVICE_ID"
+
+        echo "Extraindo ID do aplicativo enviado..."
+        APP_ID=$(jq -r '.uuid' upload_response.json)
+        echo "Aplicativo enviado: $APP_ID"
+
+        echo "Instalando aplicativo no UFT Mobile..."
+        RESPONSE=$(curl -X POST "https://labmobile.keeggo.com/rest/v2/public/application/install" \
+          -H "Authorization: Bearer ${{ env.TOKEN }}" \
+          -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
+          -H "Content-Type: application/json" \
+          -d "{
+                \"deviceId\": \"$DEVICE_ID\",
+                \"applicationId\": \"$APP_ID\",
+                \"instrumented\": true
+              }")
+
+        echo "Resposta da instalação:"
+        echo "$RESPONSE"
+
    
 
