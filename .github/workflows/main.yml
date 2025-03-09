@@ -132,7 +132,14 @@ jobs:
       run: |
         echo "Extraindo informações da reserva..."
         DEVICE_ID=$(jq -r '.device.id' response.json)
-        echo "Dispositivo reservado: $DEVICE_ID"
+
+        # Se o ID da reserva for nulo, usa o chumbado como fallback
+        if [ "$DEVICE_ID" == "null" ] || [ -z "$DEVICE_ID" ]; then
+          DEVICE_ID="00008030-00040D410247802E"
+          echo "Usando ID chumbado: $DEVICE_ID"
+        else
+          echo "Dispositivo reservado: $DEVICE_ID"
+        fi
 
         echo "Extraindo ID do aplicativo enviado..."
         APP_ID=$(jq -r '.uuid' upload_response.json)
