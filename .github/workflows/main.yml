@@ -139,7 +139,7 @@ jobs:
         echo "Aplicativo enviado: $APP_ID"
 
         echo "Instalando aplicativo no UFT Mobile..."
-        RESPONSE=$(curl -X POST "https://labmobile.keeggo.com/rest/v2/public/application/install" \
+        RESPONSE=$(curl -k -X POST "https://labmobile.keeggo.com/rest/v2/public/application/install" \
           -H "Authorization: Bearer ${{ env.TOKEN }}" \
           -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
           -H "Content-Type: application/json" \
