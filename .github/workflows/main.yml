@@ -95,15 +95,35 @@ jobs:
           exit 1
         fi
 
-    - name: Verificar APK  # Verifica se o APK contém o arquivo AndroidManifest.xml, garantindo a validade do arquivo
+    - name: Verificar Artefato  # Verifica se o arquivo é válido (APK com AndroidManifest.xml ou IPA com Info.plist)
       run: |
-        echo "Verificando o arquivo APK baixado..."
-        if unzip -l "$ARTEFATO_NOME" | grep -q AndroidManifest.xml; then
-          echo "O arquivo APK é válido e contém o AndroidManifest.xml."
+        echo "Verificando o artefato baixado: $ARTEFATO_NOME"
+        
+        # Obtém a extensão do arquivo
+        EXTENSÃO="${ARTEFATO_NOME##*.}"
+    
+        if [[ "$EXTENSÃO" == "apk" ]]; then
+          echo "O artefato é um APK. Verificando AndroidManifest.xml..."
+          if unzip -l "$ARTEFATO_NOME" | grep -q AndroidManifest.xml; then
+            echo "O arquivo APK é válido e contém o AndroidManifest.xml."
+          else
+            echo "Erro: O arquivo APK não contém AndroidManifest.xml. O processo será interrompido."
+            exit 1
+          fi
+        elif [[ "$EXTENSÃO" == "ipa" ]]; then
+          echo "O artefato é um IPA. Verificando Info.plist..."
+          unzip -q "$ARTEFATO_NOME" -d extracted
+          if [ -f extracted/Payload/*.app/Info.plist ]; then
+            echo "O arquivo IPA é válido e contém o Info.plist."
+          else
+            echo "Erro: O arquivo IPA não contém Info.plist. O processo será interrompido."
+            exit 1
+          fi
         else
-          echo "Erro: O arquivo APK não contém o AndroidManifest.xml. O processo será interrompido."
+          echo "Erro: Extensão de arquivo não reconhecida. Apenas APK e IPA são suportados."
           exit 1
         fi
+
 
     - name: Enviar Artefato para UFT Mobile
 
