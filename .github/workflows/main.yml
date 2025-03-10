@@ -167,7 +167,7 @@ jobs:
         APP_ID=$(jq -r '.id' upload_response.json)
         APP_COUNTER=$(jq -r '.counter' upload_response.json)
         
-        echo "Aplicativo enviado: $APP_ID"
+        echo "Aplicativo enviado: $APP_ID $APP_COUNTER $APP_UUID"
 
         echo "Instalando aplicativo no UFT Mobile..."
         RESPONSE=$(curl -k -X POST "https://labmobile.keeggo.com/rest/v2/public/application/install" \
