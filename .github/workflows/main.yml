@@ -177,9 +177,9 @@ jobs:
           -d "{
                 \"deviceCapabilities\": {
                   \"deviceHostingType\": \"PrivateHosting\",
-                  \"platformVersion\": \"16.0\",
+                  \"platformVersion\": \"16.2\",
                   \"platformName\": \"iOS\",
-                  \"deviceName\": \"iPhone 13\",
+                  \"deviceName\": \"iPhone Se\",
                   \"udid\": \"$DEVICE_ID\",
                   \"templateId\": \"12345\",
                   \"source\": \"HOSTED\",
