@@ -175,12 +175,25 @@ jobs:
           -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
           -H "Content-Type: application/json" \
           -d "{
-                \"deviceId\": \"$DEVICE_ID\",
-                \"applicationId\": \"$APP_ID\",
-                \"applicationUuid\": \"$APP_UUID\",
-                \"instrumented\": true,
-                \"counter\": \"$APP_COUNTER\"
+                \"deviceCapabilities\": {
+                  \"deviceHostingType\": \"PrivateHosting\",
+                  \"platformVersion\": \"16.0\",
+                  \"platformName\": \"iOS\",
+                  \"deviceName\": \"iPhone 13\",
+                  \"udid\": \"$DEVICE_ID\",
+                  \"templateId\": \"12345\",
+                  \"source\": \"HOSTED\",
+                  \"location\": \"ANY\"
+                },
+                \"app\": {
+                  \"id\": \"$APP_ID\",
+                  \"uuid\": \"$APP_UUID\",
+                  \"instrumented\": true,
+                  \"counter\": $APP_COUNTER
+                },
+                \"jobId\": \"test-job-123\"
               }")
+
 
         echo "Resposta da instalação:"
         echo "$RESPONSE"
