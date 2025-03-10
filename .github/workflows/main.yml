@@ -163,7 +163,10 @@ jobs:
         fi
 
         echo "Extraindo ID do aplicativo enviado..."
-        APP_ID=$(jq -r '.uuid' upload_response.json)
+        APP_UUID=$(jq -r '.uuid' upload_response.json)
+        APP_ID=$(jq -r '.id' upload_response.json)
+        APP_COUNTER=$(jq -r '.counter' upload_response.json)
+        
         echo "Aplicativo enviado: $APP_ID"
 
         echo "Instalando aplicativo no UFT Mobile..."
@@ -174,7 +177,9 @@ jobs:
           -d "{
                 \"deviceId\": \"$DEVICE_ID\",
                 \"applicationId\": \"$APP_ID\",
-                \"instrumented\": true
+                \"applicationUuid\": \"$APP_UUID\",
+                \"instrumented\": true,
+                \"counter\": \"$APP_COUNTER\"
               }")
 
         echo "Resposta da instalação:"
