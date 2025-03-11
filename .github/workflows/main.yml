@@ -7,6 +7,10 @@ on:
         description: 'URL do artefato a ser baixado'
         required: true
 
+      device_id:
+        description: 'ID do device'
+        required: true
+
 jobs:
   upload-application:
     runs-on: ubuntu-latest
@@ -120,10 +124,7 @@ jobs:
         fi
     - name: Instalar Aplicativo no Dispositivo
       run: |
-        DEVICE_ID=$(jq -r '.device.id' response.json)
-        if [ "$DEVICE_ID" == "null" ] || [ -z "$DEVICE_ID" ]; then
-          DEVICE_ID="RQCT302RQJH"
-        fi
+        DEVICE_ID="${{ github.event.inputs.id_device }}"
 
         APP_ID=$(jq -r '.id' upload_response.json)
         APP_UUID=$(jq -r '.uuid' upload_response.json)
