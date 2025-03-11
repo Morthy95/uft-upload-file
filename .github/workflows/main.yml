@@ -7,7 +7,7 @@ on:
         description: 'URL do artefato a ser baixado'
         required: true
 
-      device_id:
+      id_device:
         description: 'ID do device'
         required: true
 
