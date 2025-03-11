@@ -110,7 +110,7 @@ jobs:
           -F "fileName=$ARTEFATO_NOME" \
           -F "description=Aplicativo para teste" \
           -F "overrideExistingFile=true" \
-          -F "workspaceId=de896153-bda6-4e11-a197-aa99b4a1f75e")
+          -F "workspaceId=all")
 
         HTTP_CODE=$(tail -n 1 <<< "$RESPONSE")
         if [ "$HTTP_CODE" -ne 200 ]; then
