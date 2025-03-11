@@ -118,12 +118,11 @@ jobs:
           cat upload_response.json
           exit 1
         fi
-
     - name: Instalar Aplicativo no Dispositivo
       run: |
         DEVICE_ID=$(jq -r '.device.id' response.json)
         if [ "$DEVICE_ID" == "null" ] || [ -z "$DEVICE_ID" ]; then
-          DEVICE_ID="RQCT302RQJH"
+          DEVICE_ID="00008030-00040D410247802E"
         fi
 
         APP_ID=$(jq -r '.id' upload_response.json)
@@ -135,18 +134,31 @@ jobs:
           -H "x-hp4msecret: $X_HP4MSECRET" \
           -H "Content-Type: application/json" \
           -d "{
-                \"app\": {
-                  \"id\": \"$APP_ID\",
-                  \"uuid\": \"$APP_UUID\",
-                  \"instrumented\": false,
-                  \"counter\": $APP_COUNTER
-                },
-                \"deviceCapabilities\": {
-                  \"udid\": \"$DEVICE_ID\"
-                }
-              }")
 
-        echo "Resposta da instalação:"
-        echo "$RESPONSE"
+                \"app\": {
+
+                  \"id\": \"$APP_ID\",
+
+                  \"uuid\": \"$APP_UUID\",
+
+                  \"instrumented\": false,
+
+                  \"counter\": $APP_COUNTER
+
+                },
+
+                \"deviceCapabilities\": {
+
+                  \"udid\": \"$DEVICE_ID\"
+
+                }
+
+              }")          
+          echo "Resposta da instalação:"
+          echo "$RESPONSE"
+
+      
+  
+          
 
 
