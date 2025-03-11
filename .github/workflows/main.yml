@@ -138,7 +138,7 @@ jobs:
                 \"app\": {
                   \"id\": \"eab86890-7851-4293-a657-5edc1bec78be\",
                   \"uuid\": \"eab86890-7851-4293-a657-5edc1bec78be\",
-                  \"instrumented\": true,
+                  \"instrumented\": true
 
                 },
 
