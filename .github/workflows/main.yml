@@ -136,8 +136,8 @@ jobs:
           -d "{
 
                 \"app\": {
-                  \"id\": \"eab86890-7851-4293-a657-5edc1bec78be\",
-                  \"uuid\": \"eab86890-7851-4293-a657-5edc1bec78be\",
+                  \"id\": \"da577e78-7d1b-4563-81cf-a34a8618eb6\",
+                  \"uuid\": \"da577e78-7d1b-4563-81cf-a34a8618eb6\",
                   \"instrumented\": true
 
                 },
