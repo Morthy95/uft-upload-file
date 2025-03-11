@@ -122,7 +122,7 @@ jobs:
       run: |
         DEVICE_ID=$(jq -r '.device.id' response.json)
         if [ "$DEVICE_ID" == "null" ] || [ -z "$DEVICE_ID" ]; then
-          DEVICE_ID="00008030-00040D410247802E"
+          DEVICE_ID="RQCT302RQJH"
         fi
 
         APP_ID=$(jq -r '.id' upload_response.json)
