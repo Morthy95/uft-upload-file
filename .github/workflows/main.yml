@@ -52,6 +52,7 @@ jobs:
 
     - name: Reserva de device
       run: |
+        DEVICE_ID="${{ github.event.inputs.id_device }}"
         echo "Reservando o dispositivo..."
         RESPONSE=$(curl -k -s -o response.json -w "%{http_code}" -X POST "https://labmobile.keeggo.com/rest/v2/public/reservation" \
           -H "Authorization: Bearer $TOKEN" \
@@ -62,7 +63,7 @@ jobs:
             \"endTime\": \"$END_TIME\",
             \"releaseOnJobCompletion\": false,
             \"deviceCapabilities\": {
-              \"udid\": \"RQCT302RQJH\"
+              \"udid\": \"$DEVICE_ID\"
             }
           }")
 
@@ -124,7 +125,7 @@ jobs:
         fi
     - name: Instalar Aplicativo no Dispositivo
       run: |
-        DEVICE_ID="${{ github.event.inputs.id_device }}"
+        
 
         APP_ID=$(jq -r '.id' upload_response.json)
         APP_UUID=$(jq -r '.uuid' upload_response.json)
