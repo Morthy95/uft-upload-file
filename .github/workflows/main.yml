@@ -1,33 +1,142 @@
-- name: Instalar Aplicativo no Dispositivo
-      run: |
-        echo "Extraindo informações da reserva..."
-        DEVICE_ID=$(jq -r '.device.id' response.json)
+name: Retrieve Token, Reserve Device and Upload Artefact
 
-        # Se o ID da reserva for nulo, usa o chumbado como fallback
-        if [ "$DEVICE_ID" == "null" ] || [ -z "$DEVICE_ID" ]; then
-          DEVICE_ID="00008030-00040D410247802E"
-          echo "Usando ID chumbado: $DEVICE_ID"
+on:
+  workflow_dispatch:
+    inputs:
+      artefact_url:
+        description: 'URL do artefato a ser baixado'
+        required: true
+
+jobs:
+  upload-aplication:
+    runs-on: ubuntu-latest  # Usa um runner self-hosted configurado no Red Hat
+
+    steps:
+    - name: Install jq and unzip (Red Hat)
+      run: sudo apt-get install -y jq unzip
+
+    - name: Calculate Start and End Times
+      run: |
+        echo "Calculando horários em formato ISO 8601 (UTC)..."
+        START_TIME=$(TZ=America/Sao_Paulo date +"%Y-%m-%dT%H:%M:%S%:z" -d "+1 minute")
+        END_TIME=$(TZ=America/Sao_Paulo date +"%Y-%m-%dT%H:%M:%S%:z" -d "+1 hour 1 minute")
+        echo "START_TIME=$START_TIME" >> $GITHUB_ENV
+        echo "END_TIME=$END_TIME" >> $GITHUB_ENV
+
+    - name: Generate OAuth Token
+      env:
+        CLIENT: ${{ secrets.CLIENT }}
+        SECRET: ${{ secrets.SECRET }}
+        TENANT: ${{ secrets.TENANT }}
+      run: |
+        echo "Gerando o token OAuth..."
+        RESPONSE=$(curl -i -s -k -X POST https://labmobile.keeggo.com/rest/oauth2/token \
+          -H "Content-Type: application/json" \
+          -d "{\"client\":\"$CLIENT\", \"secret\":\"$SECRET\", \"tenant\":\"$TENANT\"}")
+
+        HEADER_X_HP4MSECRET=$(echo "$RESPONSE" | grep -i "x-hp4msecret" | awk '{print $2}' | tr -d '\r')
+        if [ -z "$HEADER_X_HP4MSECRET" ]; then
+          echo "Erro: Cabeçalho x-hp4msecret não encontrado."
+          exit 1
+        fi
+        TOKEN=$(echo "$RESPONSE" | awk 'BEGIN {RS=""; FS="\r\n\r\n"} {print $2}' | jq -r '.access_token')
+
+        echo "TOKEN=$TOKEN" >> $GITHUB_ENV
+        echo "X_HP4MSECRET=$HEADER_X_HP4MSECRET" >> $GITHUB_ENV
+
+    - name: Reserva de device
+      run: |
+        echo "Reservando o dispositivo..."
+        RESPONSE=$(curl -k -s -o response.json -w "%{http_code}" -X POST "https://labmobile.keeggo.com/rest/v2/public/reservation" \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "x-hp4msecret: $X_HP4MSECRET" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"startTime\": \"$START_TIME\",
+            \"endTime\": \"$END_TIME\",
+            \"releaseOnJobCompletion\": false,
+            \"deviceCapabilities\": {
+              \"udid\": \"00008030-00040D410247802E\"
+            }
+          }")
+
+        HTTP_CODE=$(tail -n 1 <<< "$RESPONSE")
+        if [ "$HTTP_CODE" -ne 200 ]; then
+          echo "Erro ao reservar o dispositivo."
+          cat response.json
+          exit 1
+        fi
+        echo "Dispositivo reservado com sucesso."
+
+    - name: Download Artefato
+      run: |
+        echo "Baixando o artefato: ${{ github.event.inputs.artefact_url }}"
+        ARTEFATO_NOME=$(basename "${{ github.event.inputs.artefact_url }}")
+        curl -L -o "$ARTEFATO_NOME" "${{ github.event.inputs.artefact_url }}"
+
+        if [ ! -f "$ARTEFATO_NOME" ]; then
+          echo "Erro: Falha no download do artefato."
+          exit 1
+        fi
+        echo "ARTEFATO_NOME=$ARTEFATO_NOME" >> $GITHUB_ENV
+
+    - name: Verificar Artefato
+      run: |
+        EXTENSAO="${ARTEFATO_NOME##*.}"
+        if [[ "$EXTENSAO" == "apk" ]]; then
+          if ! unzip -l "$ARTEFATO_NOME" | grep -q AndroidManifest.xml; then
+            echo "Erro: APK inválido."
+            exit 1
+          fi
+        elif [[ "$EXTENSAO" == "ipa" ]]; then
+          unzip -q "$ARTEFATO_NOME" -d extracted
+          if [ ! -f extracted/Payload/*.app/Info.plist ]; then
+            echo "Erro: IPA inválido."
+            exit 1
+          fi
         else
-          echo "Dispositivo reservado: $DEVICE_ID"
+          echo "Erro: Extensão de arquivo não suportada."
+          exit 1
         fi
 
-        echo "Extraindo ID do aplicativo enviado..."
-        APP_UUID=$(jq -r '.uuid' upload_response.json)
+    - name: Enviar Artefato para UFT Mobile
+      run: |
+        RESPONSE=$(curl -k -s -o upload_response.json -w "%{http_code}" -X POST https://labmobile.keeggo.com/rest/apps \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "x-hp4msecret: $X_HP4MSECRET" \
+          -F "file=@$ARTEFATO_NOME" \
+          -F "fileName=$ARTEFATO_NOME" \
+          -F "description=Aplicativo Android para teste" \
+          -F "overrideExistingFile=true" \
+          -F "workspaceId=de896153-bda6-4e11-a197-aa99b4a1f75e")
+
+        HTTP_CODE=$(tail -n 1 <<< "$RESPONSE")
+        if [ "$HTTP_CODE" -ne 200 ]; then
+          echo "Erro no upload do artefato."
+          cat upload_response.json
+          exit 1
+        fi
+
+    - name: Instalar Aplicativo no Dispositivo
+      run: |
+        DEVICE_ID=$(jq -r '.device.id' response.json)
+        if [ "$DEVICE_ID" == "null" ] || [ -z "$DEVICE_ID" ]; then
+          DEVICE_ID="00008030-00040D410247802E"
+        fi
+
         APP_ID=$(jq -r '.id' upload_response.json)
+        APP_UUID=$(jq -r '.uuid' upload_response.json)
         APP_COUNTER=$(jq -r '.counter' upload_response.json)
 
-        echo "Aplicativo enviado: $APP_ID $APP_COUNTER $APP_UUID"
-
-        echo "Instalando aplicativo no UFT Mobile..."
         RESPONSE=$(curl -k -s -X POST "https://labmobile.keeggo.com/rest/apps/install" \
-          -H "Authorization: Bearer ${{ env.TOKEN }}" \
-          -H "x-hp4msecret: ${{ env.X_HP4MSECRET }}" \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "x-hp4msecret: $X_HP4MSECRET" \
           -H "Content-Type: application/json" \
           -d "{
                 \"app\": {
                   \"id\": \"$APP_ID\",
                   \"uuid\": \"$APP_UUID\",
-                  \"instrumented\": true,
+                  \"instrumented\": false,
                   \"counter\": $APP_COUNTER
                 },
                 \"deviceCapabilities\": {
@@ -37,6 +146,4 @@
 
         echo "Resposta da instalação:"
         echo "$RESPONSE"
-
-   
 
