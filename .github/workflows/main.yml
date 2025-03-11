@@ -58,7 +58,7 @@ jobs:
             \"endTime\": \"$END_TIME\",
             \"releaseOnJobCompletion\": false,
             \"deviceCapabilities\": {
-              \"udid\": \"00008030-00040D410247802E\"
+              \"udid\": \"RQCT302RQJH\"
             }
           }")
 
