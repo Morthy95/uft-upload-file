@@ -53,7 +53,7 @@ jobs:
     - name: Reserva de device
       run: |
         DEVICE_ID="${{ github.event.inputs.id_device }}"
-        echo "Reservando o dispositivo..."
+        echo "Reservando o dispositivo... $DEVICE_ID"
         RESPONSE=$(curl -k -s -o response.json -w "%{http_code}" -X POST "https://labmobile.keeggo.com/rest/v2/public/reservation" \
           -H "Authorization: Bearer $TOKEN" \
           -H "x-hp4msecret: $X_HP4MSECRET" \
