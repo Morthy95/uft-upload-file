@@ -8,18 +8,19 @@ on:
         required: true
 
 jobs:
-  upload-aplication:
-    runs-on: ubuntu-latest  # Usa um runner self-hosted configurado no Red Hat
+  upload-application:
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Install jq and unzip (Red Hat)
+    - name: Install jq and unzip
       run: sudo apt-get install -y jq unzip
 
     - name: Calculate Start and End Times
       run: |
-        echo "Calculando horários em formato ISO 8601 (UTC)..."
+        echo "Calculando horários..."
         START_TIME=$(TZ=America/Sao_Paulo date +"%Y-%m-%dT%H:%M:%S%:z" -d "+1 minute")
         END_TIME=$(TZ=America/Sao_Paulo date +"%Y-%m-%dT%H:%M:%S%:z" -d "+1 hour 1 minute")
+
         echo "START_TIME=$START_TIME" >> $GITHUB_ENV
         echo "END_TIME=$END_TIME" >> $GITHUB_ENV
 
@@ -39,6 +40,7 @@ jobs:
           echo "Erro: Cabeçalho x-hp4msecret não encontrado."
           exit 1
         fi
+
         TOKEN=$(echo "$RESPONSE" | awk 'BEGIN {RS=""; FS="\r\n\r\n"} {print $2}' | jq -r '.access_token')
 
         echo "TOKEN=$TOKEN" >> $GITHUB_ENV
@@ -70,7 +72,7 @@ jobs:
 
     - name: Download Artefato
       run: |
-        echo "Baixando o artefato: ${{ github.event.inputs.artefact_url }}"
+        echo "Baixando o artefato..."
         ARTEFATO_NOME=$(basename "${{ github.event.inputs.artefact_url }}")
         curl -L -o "$ARTEFATO_NOME" "${{ github.event.inputs.artefact_url }}"
 
@@ -106,7 +108,7 @@ jobs:
           -H "x-hp4msecret: $X_HP4MSECRET" \
           -F "file=@$ARTEFATO_NOME" \
           -F "fileName=$ARTEFATO_NOME" \
-          -F "description=Aplicativo Android para teste" \
+          -F "description=Aplicativo para teste" \
           -F "overrideExistingFile=true" \
           -F "workspaceId=de896153-bda6-4e11-a197-aa99b4a1f75e")
 
@@ -146,4 +148,5 @@ jobs:
 
         echo "Resposta da instalação:"
         echo "$RESPONSE"
+
 
