@@ -138,8 +138,8 @@ jobs:
           -d "{
 
                 \"app\": {
-                  \"id\": \"da577e78-7d1b-4563-81cf-a34a8618eb6\",
-                  \"uuid\": \"da577e78-7d1b-4563-81cf-a34a8618eb6\",
+                  \"id\": \"$APP_UUID\",
+                  \"uuid\": \"$APP_UUID\",
                   \"instrumented\": true
 
                 },
