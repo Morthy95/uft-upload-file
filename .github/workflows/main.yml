@@ -63,32 +63,6 @@ jobs:
         jq -r '.[] | select(.connected == true and .currentReservation.status == "Free") | .udid' devices.json
         jq . devices.json
 
-
-    - name: Reserva de device
-      run: |
-        DEVICE_ID="${{ github.event.inputs.id_device }}"
-        echo "Reservando o dispositivo... $DEVICE_ID"
-        RESPONSE=$(curl -k -s -o response.json -w "%{http_code}" -X POST "https://labmobile.keeggo.com/rest/v2/public/reservation" \
-          -H "Authorization: Bearer $TOKEN" \
-          -H "x-hp4msecret: $X_HP4MSECRET" \
-          -H "Content-Type: application/json" \
-          -d "{
-            \"startTime\": \"$START_TIME\",
-            \"endTime\": \"$END_TIME\",
-            \"releaseOnJobCompletion\": false,
-            \"deviceCapabilities\": {
-              \"udid\": \"$DEVICE_ID\"
-            }
-          }")
-
-        HTTP_CODE=$(tail -n 1 <<< "$RESPONSE")
-        if [ "$HTTP_CODE" -ne 200 ]; then
-          echo "Erro ao reservar o dispositivo."
-          cat response.json
-          exit 1
-        fi
-        echo "Dispositivo reservado com sucesso."
-
     - name: Download Artefato
       run: |
         echo "Baixando o artefato..."
@@ -140,35 +114,66 @@ jobs:
         fi
     - name: Instalar Aplicativo no Dispositivo
       run: |
-        
-
+    
+        # Verificar ou determinar o DEVICE_ID
+        if [ -z "$DEVICE_ID" ]; then
+          echo "DEVICE_ID não informado. Selecionando automaticamente com base na extensão do app..."
+    
+          EXT="${ARTEFATO_NOME##*.}"
+    
+          if [[ "$EXT" == "ipa" ]]; then
+            PLATAFORMA="iOS"
+          elif [[ "$EXT" == "apk" ]]; then
+            PLATAFORMA="Android"
+          else
+            echo "Extensão desconhecida: $EXT"
+            exit 1
+          fi
+    
+          # Buscar primeiro device disponível da plataforma
+          DEVICE_ID=$(jq -r --arg plataforma "$PLATAFORMA" '
+            .[] | select(
+              .connected == true and 
+              .currentReservation.status == "Free" and 
+              .platformName == $plataforma
+            ) | .udid' devices.json | head -n 1)
+    
+          if [ -z "$DEVICE_ID" ]; then
+            echo "Nenhum device disponível para a plataforma $PLATAFORMA"
+            exit 1
+          fi
+    
+          DEVICE_NOME=$(jq -r --arg udid "$DEVICE_ID" '.[] | select(.udid == $udid) | .deviceName' devices.json)
+          echo "Dispositivo selecionado automaticamente: $DEVICE_NOME ($DEVICE_ID)"
+          echo "DEVICE_ID=$DEVICE_ID" >> $GITHUB_ENV
+        else
+          echo "DEVICE_ID informado manualmente: $DEVICE_ID"
+          echo "DEVICE_ID=$DEVICE_ID" >> $GITHUB_ENV
+        fi
+    
+        # Coletar dados do app
         APP_ID=$(jq -r '.id' upload_response.json)
         APP_UUID=$(jq -r '.uuid' upload_response.json)
         APP_COUNTER=$(jq -r '.counter' upload_response.json)
-
+    
+        # Enviar requisição de instalação
         RESPONSE=$(curl -k -s -X POST "https://labmobile.keeggo.com/rest/apps/install" \
           -H "Authorization: Bearer $TOKEN" \
           -H "x-hp4msecret: $X_HP4MSECRET" \
           -H "Content-Type: application/json" \
           -d "{
-
                 \"app\": {
                   \"id\": \"$APP_UUID\",
                   \"uuid\": \"$APP_UUID\",
                   \"instrumented\": true
-
                 },
-
                 \"deviceCapabilities\": {
                   \"udid\": \"$DEVICE_ID\"
                 }
-
-              }")          
-          echo "Resposta da instalação:"
-          echo "$RESPONSE"
-
-      
-  
-          
-
-
+              }")
+    
+        echo "Resposta da instalação:"
+        echo "$RESPONSE"
+              
+    
+    
