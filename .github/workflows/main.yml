@@ -61,6 +61,7 @@ jobs:
     
         echo "Lista de UDIDs conectados e livres:"
         jq -r '.[] | select(.connected == true and .currentReservation.status == "Free") | .udid' devices.json
+        jq . devices.json
 
 
     - name: Reserva de device
