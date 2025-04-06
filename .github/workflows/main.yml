@@ -57,7 +57,7 @@ jobs:
           -H "x-hp4msecret: $X_HP4MSECRET" \
           -H "Content-Type: application/json")
 
-        echo "$RESPONSE"
+        echo "lista de devices $RESPONSE"
 
     - name: Reserva de device
       run: |
