@@ -52,12 +52,13 @@ jobs:
 
     - name: Busca de Device
       run: | 
-        RESPONSE=$(curl -k -s -o response.json -w "%{http_code}" -X GET "https://labmobile.keeggo.com/rest/deviceContent" \
+        RESPONSE=$(curl -k -s -X GET "https://labmobile.keeggo.com/rest/deviceContent" \
           -H "Authorization: Bearer $TOKEN" \
           -H "x-hp4msecret: $X_HP4MSECRET" \
           -H "Content-Type: application/json")
 
         echo "lista de devices $RESPONSE"
+        echo $RESPONSE > devices.json
 
     - name: Reserva de device
       run: |
