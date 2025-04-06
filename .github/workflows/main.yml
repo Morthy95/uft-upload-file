@@ -57,8 +57,11 @@ jobs:
           -H "x-hp4msecret: $X_HP4MSECRET" \
           -H "Content-Type: application/json")
 
-        echo "lista de devices $RESPONSE"
-        echo $RESPONSE > devices.json
+        echo "$RESPONSE" > devices.json
+    
+        echo "Lista de UDIDs conectados e livres:"
+        jq -r '.[] | select(.connected == true and .currentReservation.status == "Free") | .udid' devices.json
+
 
     - name: Reserva de device
       run: |
