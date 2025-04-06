@@ -9,7 +9,7 @@ on:
 
       id_device:
         description: 'ID do device'
-        required: true
+        required: false
 
 jobs:
   upload-application:
