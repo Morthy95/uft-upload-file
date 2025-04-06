@@ -55,7 +55,7 @@ jobs:
         RESPONSE=$(curl -k -s -o response.json -w "%{http_code}" -X POST "https://labmobile.keeggo.com/rest/deviceContent" \
           -H "Authorization: Bearer $TOKEN" \
           -H "x-hp4msecret: $X_HP4MSECRET" \
-          -H "Content-Type: application/json"
+          -H "Content-Type: application/json")
 
         echo "$RESPONSE"
 
